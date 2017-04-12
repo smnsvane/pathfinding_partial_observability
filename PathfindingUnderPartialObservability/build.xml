@@ -1,0 +1,37 @@
+<project name="Agent5" default="zip">
+
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	<property name="dist" location="dist" />
+	<property name="zip" location="zip" />
+	<property name="resource.files.tocopy" value="**/*.map" />
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+		<delete dir="${zip}" />
+		<mkdir dir="${build}" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${zip}" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<javac srcdir="${src}" destdir="${build}" excludes="test/**" />
+	</target>
+
+	<target name="package" depends="compile">
+		<jar jarfile="${dist}/Agent5.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="core.AgentMonitor" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="zip" depends="package">
+		<copy todir="${dist}">
+			<fileset dir="." includes="${resource.files.tocopy}"/>
+		</copy>
+		<zip zipfile="${zip}/Agent5.zip" basedir="${dist}"/>
+	</target>
+
+</project>
