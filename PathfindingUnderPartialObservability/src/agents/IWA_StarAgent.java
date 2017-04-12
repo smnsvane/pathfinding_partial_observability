@@ -16,14 +16,12 @@ import static core.TileType.*;
 import nodeSetting.NodeSetter;
 import nodeSetting.TunnelNodeAlgorithm;
 
-public class IWA_StarAgent extends Agent
-{
+public class IWA_StarAgent extends Agent {
+
 	private NodeGraph graph;
-	
 	private NodeSetter nodeSettingAproach;
 	
-	public IWA_StarAgent(AgentMonitor monitor, TileMapImpl knowledge)
-	{
+	public IWA_StarAgent(AgentMonitor monitor, TileMapImpl knowledge) {
 		super(monitor, knowledge);
 		graph = new NodeGraph(getKnowledge());
 		for (TileImpl node : getKnowledge().getAllTiles(NODE))
@@ -44,35 +42,31 @@ public class IWA_StarAgent extends Agent
 		nodeSettingAproach = new TunnelNodeAlgorithm();
 	}
 	
-	public void placeNewNodes()
-	{
+	public void placeNewNodes() {
+
 		for (TileImpl tile : getKnowledge().getAllTiles(CLEAR))
 			if (nodeSettingAproach.isValidNode(tile, getKnowledge()))
 				createNode(tile);
 	}
 	
 	public void createNode(int x, int y) { createNode(getKnowledge().getTile(x, y)); }
-	public void createNode(TileImpl location)
-	{
+	public void createNode(TileImpl location) {
 		Node node = new Node(location, getMonitor().getGoalLocation());
 		getKnowledge().setTile(node);
 		graph.addNode(node);
 	}
-	public void removeNode(Node node)
-	{
+	public void removeNode(Node node) {
 		graph.removeNode(node);
 		getKnowledge().setTile(new TileImpl(node.getX(), node.getY(), CLEAR));
 	}
-	private void saveKnowledge()
-	{
+	private void saveKnowledge() {
 		try { SaveRestore.save(getKnowledge(), getMonitor().filename); }
 		catch (IOException e) { e.printStackTrace(); }
 	}
-	
+
 	private List<TileImpl> walkPath = new ArrayList<TileImpl>();
 	private List<Node> nodePath = new ArrayList<Node>();
-	private void buildwalkPath()
-	{
+	private void buildwalkPath() {
 		Node dist = nodePath.remove(0);
 		List<TileImpl> list =
 			getKnowledge().bresenhamLineAlgorithm
@@ -84,28 +78,22 @@ public class IWA_StarAgent extends Agent
 			);
 		
 		// if first walk location is in same location as agent...
-		if (list.get(0).equalCoords(getKnowledge().getAgentLocation()))
-		{
+		if (list.get(0).equalCoords(getKnowledge().getAgentLocation())) {
 			list.remove(0);
 			walkPath.addAll(list);
-		}
-		else
+		} else
 			// reverse walk list
 			for (int i = list.size() - 2; i >= 0; i--)
 				walkPath.add(list.get(i));
 	}
 	@Override
-	public void action()
-	{
+	public void action() {
 		// if walk path contains no tiles
-		if (walkPath.isEmpty())
-		{
+		if (walkPath.isEmpty()) {
 			// if node path contains no waypoints (nodes)
-			if (nodePath.isEmpty())
-			{
+			if (nodePath.isEmpty()) {
 				// if goal have been reached...
-				if (getMonitor().getGoalLocation().equalCoords(getKnowledge().getAgentLocation()))
-				{
+				if (getMonitor().getGoalLocation().equalCoords(getKnowledge().getAgentLocation())) {
 					// save known map
 					saveKnowledge();
 					// terminate agent
@@ -128,14 +116,12 @@ public class IWA_StarAgent extends Agent
 		getMonitor().moveAgent(walkPath.remove(0));
 	}
 	
-	public void iwaStar()
-	{
+	public void iwaStar() {
 		// agent location
 		Node x = graph.getNode((Node) getKnowledge().getAgentLocation());
 		
 		// if node is visited for the first time...
-		if (!x.isVisited())
-		{
+		if (!x.isVisited()) {
 			// mark node as visited
 			x.setVisited(true);
 		
@@ -162,8 +148,7 @@ public class IWA_StarAgent extends Agent
 		
 		// build node path that leads to the current subgoal
 		nodePath.add(0, subgoal);
-		while (!neighbors.contains(subgoal))
-		{
+		while (!neighbors.contains(subgoal)) {
 			subgoal = subgoal.getParrent();
 			nodePath.add(0, subgoal);
 		}

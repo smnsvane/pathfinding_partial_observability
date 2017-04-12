@@ -1,7 +1,9 @@
 package basic;
 
-public abstract class AbstractTile implements Tile
-{
+public abstract class AbstractTile implements Tile {
+
+	private static final long serialVersionUID = 1L;
+
 	private int x, y;
 	@Override
 	public int getX() { return x; }

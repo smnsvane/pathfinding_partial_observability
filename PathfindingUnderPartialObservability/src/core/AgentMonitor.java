@@ -12,10 +12,9 @@ import java.util.concurrent.Semaphore;
 
 import mapPurgers.AdvPurger;
 
-public class AgentMonitor extends FullScreenViewer implements KeyListener
-{
-	public static void main(String[] args)
-	{
+public class AgentMonitor extends FullScreenViewer implements KeyListener {
+
+	public static void main(String[] args) {
 		try {
 		if (args.length == 0)
 			new AgentMonitor(agents.IWA_StarAgent.class, "6");
@@ -23,33 +22,31 @@ public class AgentMonitor extends FullScreenViewer implements KeyListener
 			new AgentMonitor(agents.IWA_StarAgent.class, args[0]);
 		} catch (Exception e) { e.printStackTrace(); System.exit(1); }
 	}
-	
+
 	private final double UPS = 5.0;
 	public static final int TILE_PIXEL_DIMENTION = 6;
 	public static final int GRID_DIMENTION = 50;
-	
+
 	public final String filename;
-	
+
 	private boolean pause;
 	private TileMapImpl normal, shadow, trail, agentKnowledge;
-	
+
 	private Agent agent;
 	private TileImpl getAgentLocation() { return normal.getAgentLocation(); }
 	public TileImpl getGoalLocation() { return normal.getTile(TileType.GOAL); }
-	
+
 	private double agentTravelDistance = 0.0;
-	public void moveAgent(TileImpl destination)
-	{
+	public void moveAgent(TileImpl destination) {
 		moveAgent(destination.getX(), destination.getY());
 	}
-	public void moveAgent(int x, int y)
-	{
+	public void moveAgent(int x, int y) {
 		// can only move one tile at a time (strait or diagonal)
 		// can only move to a non-obstacle tile
 		if (Math.abs(getAgentLocation().getX() - x) > 1 ||
 				Math.abs(getAgentLocation().getY() - y) > 1 ||
-				normal.getTile(x, y).getType().equals(TileType.SOLID))
-		{
+				normal.getTile(x, y).getType().equals(TileType.SOLID)) {
+
 			terminateAgent(false, "Illegal agent move from="+getAgentLocation()+
 					" to=("+normal.getTile(x, y)+")");
 			return;
@@ -62,51 +59,46 @@ public class AgentMonitor extends FullScreenViewer implements KeyListener
 		agentKnowledge.teleportAgent(x, y);
 		agentTravelDistance += oldAgentLocation.fieldDistance(getAgentLocation());
 	}
-	
+
 	private AgentStatus currentAgentStatus = AgentStatus.RUNNING;
 	public AgentStatus getAgentStatus() { return currentAgentStatus; }
-	private enum AgentStatus
-	{
+	private enum AgentStatus {
 		TERMINATED_IN_GOAL, TERMINATED, RUNNING, PAUSED
 	}
-	
+
 	private Semaphore agentGuard = new Semaphore(0);
-	public void terminateAgent(boolean inGoal)
-	{
+	public void terminateAgent(boolean inGoal) {
 		if (inGoal)
 			currentAgentStatus = AgentStatus.TERMINATED_IN_GOAL;
 		else
 			currentAgentStatus = AgentStatus.TERMINATED;
 		new Semaphore(0).acquireUninterruptibly();
 	}
-	public void terminateAgent(boolean inGoal, String msg)
-	{
+	public void terminateAgent(boolean inGoal, String msg) {
 		System.err.println(msg);
 		terminateAgent(inGoal);
 	}
-	
-	public AgentMonitor(Class<?> agentImpl, String mapFileName)
-	{
+
+	public AgentMonitor(Class<?> agentImpl, String mapFileName) {
 		filename = "agent_knowledge"+mapFileName+".sav";
 		pause = false;
 		getJFrame().addKeyListener(this);
-		
+
 		List<TileImpl> tiles= DataReader.readFile(mapFileName+".map");
-		
+
 		normal				= new TileMapImpl(tiles);
-		
+
 		trail				= normal.clone();
 		trail.setTrail(true);
-		
+
 		shadow				= normal.generateShadowedMap(normal.getAgentLocation());
-		
+
 		File file = new File(filename);
 		if (file.isFile())
-			try
-			{
+			try {
 				//purge agent knowledge
 				new AdvPurger(filename).purge();
-				
+
 				agentKnowledge = (TileMapImpl) SaveRestore.restore(filename);
 				agentKnowledge.teleportAgent(getAgentLocation().getX(),
 						getAgentLocation().getY());
@@ -115,44 +107,39 @@ public class AgentMonitor extends FullScreenViewer implements KeyListener
 			catch (ClassNotFoundException e) { e.printStackTrace(); }
 		else
 			agentKnowledge	= shadow.clone();
-		
-		try
-		{
+
+		try {
 			this.agent = (Agent) agentImpl.getConstructors()[0].
-							newInstance(this, agentKnowledge);
-							
-		}
-		catch (Exception e) { e.printStackTrace(); System.exit(1); }
-		
+							newInstance(this, agentKnowledge);				
+		} catch (Exception e) { e.printStackTrace(); System.exit(1); }
+
 		startUpdateloop(UPS);
-		
-		while (true)
-		{
+
+		while (true) {
 			drawGuard.acquireUninterruptibly();
 			agent.action();
 		}
 	}
 	private Semaphore drawGuard = new Semaphore(0);
 	@Override
-	public void renderGraphics(Graphics2D g2d)
-	{
+	public void renderGraphics(Graphics2D g2d) {
 		g2d.setColor(Color.DARK_GRAY);
 		g2d.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		
+
 		int x = 490, y = 30, dx = 400, dy = 390, dxText = 5, dyText = -7;
-		
+
 		normal.drawGraphics(g2d, x, y, 1);
 		drawText(g2d, "Total View", x+dxText, y+dyText);
-		
+
 		trail.drawGraphics(g2d, x += dx, y, 1);
 		drawText(g2d, "Agent Trail View", x+dxText, y+dyText);
-		
+
 		shadow.drawGraphics(g2d, x -= dx, y += dy, 1);
 		drawText(g2d, "Shadow View", x+dxText, y+dyText);
-		
+
 		agentKnowledge.drawGraphics(g2d, x += dx, y, 1);
 		drawText(g2d, "Agent Knowledge View", x+dxText, y+dyText);
-		
+
 		x = 5; y = 15; dy = 15;
 		g2d.setColor(Color.WHITE);
 		g2d.drawString("Spacebar = pause/unpause", x, y);
@@ -161,32 +148,28 @@ public class AgentMonitor extends FullScreenViewer implements KeyListener
 		g2d.drawString("Agent Distance Traveled : "+agentTravelDistance, x, y += dy);
 		g2d.drawString("Agent Location : "+getAgentLocation(), x, y += dy);
 		g2d.drawString("Goal Location : "+normal.getTile(TileType.GOAL), x, y += 2*dy);
-		
+
 		// done drawing -> agent may move
 		if (!pause && (currentAgentStatus.equals(AgentStatus.RUNNING)))
 			drawGuard.release();
 	}
 	private Font textFont = new Font("Tahoma", Font.PLAIN, 12);
-	private void drawText(Graphics2D g2d, String text, int x, int y)
-	{
+	private void drawText(Graphics2D g2d, String text, int x, int y) {
 		g2d.setFont(textFont);
 		g2d.setColor(Color.WHITE);
 		g2d.drawString(text, x, y);
 	}
-	
+
 	@Override
-	public void keyPressed(KeyEvent ke)
-	{
-		switch (ke.getKeyCode())
-		{
+	public void keyPressed(KeyEvent ke) {
+		switch (ke.getKeyCode()) {
 		case KeyEvent.VK_ESCAPE:
 			System.exit(0);
 			break;
 		case KeyEvent.VK_SPACE:
 			if (pause)
 				;//TODO
-			else
-			{
+			else {
 				//TODO
 				agentGuard.drainPermits();
 			}
@@ -194,7 +177,7 @@ public class AgentMonitor extends FullScreenViewer implements KeyListener
 			break;
 		}
 	}
-	
+
 	// UNUSED methods
 	@Override
 	public void keyReleased(KeyEvent arg0) {}

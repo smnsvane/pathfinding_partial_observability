@@ -12,17 +12,16 @@ import javax.swing.JFrame;
 import basic.Updatable;
 import basic.Updateloop;
 
-public abstract class FullScreenViewer implements Updatable
-{
+public abstract class FullScreenViewer implements Updatable {
+
 	private BufferStrategy bs;
 	public final int SCREEN_WIDTH, SCREEN_HEIGHT;
-	
+
 	private Updateloop ul;
 	private JFrame jFrame;
 	public JFrame getJFrame() { return jFrame; }
-	
-	public FullScreenViewer()
-	{
+
+	public FullScreenViewer() {
 		//Acquiring the current Graphics Device and Graphics Configuration
 		GraphicsEnvironment graphEnv =
 			GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -31,7 +30,7 @@ public abstract class FullScreenViewer implements Updatable
 			graphDevice.getDefaultConfiguration();
 		SCREEN_WIDTH = graphicConf.getBounds().width;
 		SCREEN_HEIGHT = graphicConf.getBounds().height;
-		
+
 		//Creating the JFrame
 		jFrame = new JFrame(graphicConf);
 		jFrame.setIgnoreRepaint(true);
@@ -39,36 +38,34 @@ public abstract class FullScreenViewer implements Updatable
 		jFrame.setResizable(false);
 		jFrame.setFocusTraversalKeysEnabled(false);
 		jFrame.setUndecorated(true);
-		
+
 		//Switching Resolution to Full Screen
 		DisplayMode disMode = new DisplayMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32,
 				DisplayMode.REFRESH_RATE_UNKNOWN);
 		graphDevice.setFullScreenWindow(jFrame);
 		graphDevice.setDisplayMode(disMode);
-		
+
 		//Setting up Double Buffering
 		jFrame.createBufferStrategy(2);
 		bs = jFrame.getBufferStrategy();
 	}
 	@Override
-	public void update()
-	{
+	public void update() {
 		//Update system state
 		systemUpdate();
-		
+
 		//Create graphics object
 		Graphics2D g2d = (Graphics2D) bs.getDrawGraphics();
-		
+
 		renderGraphics(g2d);
-		
+
 		//Dispose graphics object
 		g2d.dispose();
-		
+
 		//Rendering the current buffer to screen
 		bs.show();
 	}
-	public void startUpdateloop(double updatesPerSecond)
-	{
+	public void startUpdateloop(double updatesPerSecond) {
 		ul = new Updateloop(this, updatesPerSecond);
 		ul.start();
 	}

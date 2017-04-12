@@ -8,16 +8,14 @@ import core.TileImpl;
 import core.TileMapImpl;
 import core.TileType;
 
-public class BestFirstTileAgent extends Agent
-{
-	public BestFirstTileAgent(AgentMonitor monitor, TileMapImpl knowledge)
-	{
+public class BestFirstTileAgent extends Agent {
+
+	public BestFirstTileAgent(AgentMonitor monitor, TileMapImpl knowledge) {
 		super(monitor, knowledge);
 	}
 	
 	@Override
-	public void action()
-	{
+	public void action() {
 		List<TileImpl> list =
 			getKnowledge().getSurroundingTiles(getKnowledge().getAgentLocation());
 		for (int i = 0; i < list.size(); i++)
