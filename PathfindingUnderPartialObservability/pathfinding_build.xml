@@ -1,4 +1,4 @@
-<project name="Agent5" default="zip">
+<project name="Pathfinding under partial observability" default="zip">
 
 	<property name="src" location="src" />
 	<property name="build" location="build" />
